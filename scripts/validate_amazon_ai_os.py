@@ -1,19 +1,45 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
+from typing import Any
 
 
 ROOT = Path(__file__).resolve().parent.parent
+CANDIDATE_CONFIG = "跨境电商知识库/09_AI智能体/amazon-ai-os.config.v2.json"
+DEPLOYED_CONFIG = ".codex/amazon-ai-os.config.json"
+RUNBOOK_PATH = "跨境电商知识库/09_AI智能体/独立团协作运行规范.md"
+CLOSURE_PATH = "跨境电商知识库/09_AI智能体/闭环测试与验收.md"
 REQUIRED_FILES = [
-    "跨境电商知识库/09_AI智能体/独立团协作运行规范.md",
-    "跨境电商知识库/09_AI智能体/闭环测试与验收.md",
+    ".agentignore",
+    RUNBOOK_PATH,
+    CLOSURE_PATH,
+    "跨境电商知识库/09_AI智能体/Codex关联配置.md",
+    "跨境电商知识库/09_AI智能体/本地环境说明.md",
     "跨境电商知识库/08_项目管理/任务主账本/_目录.md",
     "跨境电商知识库/08_项目管理/任务主账本/任务记录模板.md",
-    "跨境电商知识库/09_AI智能体/amazon-ai-os.config.v2.json",
-    ".codex/amazon-ai-os.config.json",
+    CANDIDATE_CONFIG,
+    DEPLOYED_CONFIG,
     "scripts/deploy_amazon_ai_os_config.ps1",
+]
+FORBIDDEN_PATH_KEYWORDS = [
+    "黑帽",
+    "恶搞",
+    "赶跟卖",
+    "删差评",
+    "差评移除",
+    "种子评论",
+    "僵尸评论",
+    "僵尸链接",
+    "翻新",
+    "黑科技",
+    "多开节点",
+    "突破限制",
+    "测评实操",
+    "卡视频",
+    "无限秒杀投诉",
 ]
 REQUIRED_PROPERTIES = [
     "source_of_truth",
@@ -70,8 +96,117 @@ REQUIRED_ROLES = [
 ]
 
 
-def load_json(relative_path: str) -> dict:
+def load_json(relative_path: str) -> dict[str, Any]:
     return json.loads((ROOT / relative_path).read_text(encoding="utf-8-sig"))
+
+
+def walk_strings(value: Any, path: str = "config") -> list[tuple[str, str]]:
+    if isinstance(value, str):
+        return [(path, value)]
+    if isinstance(value, list):
+        found: list[tuple[str, str]] = []
+        for index, item in enumerate(value):
+            found.extend(walk_strings(item, f"{path}[{index}]"))
+        return found
+    if isinstance(value, dict):
+        found = []
+        for key, item in value.items():
+            found.extend(walk_strings(item, f"{path}.{key}"))
+        return found
+    return []
+
+
+def has_corrupt_placeholder(text: str) -> bool:
+    return "??" in text or "�" in text
+
+
+def resolve_prompt_file(ref: str) -> Path | None:
+    ref_path = ref.split("#", 1)[0]
+    candidates = [
+        ROOT / ref_path,
+        ROOT / "跨境电商知识库/09_AI智能体" / ref_path,
+        ROOT / "跨境电商知识库" / ref_path,
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def markdown_headings(path: Path) -> set[str]:
+    headings: set[str] = set()
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
+        match = re.match(r"^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$", line)
+        if match:
+            headings.add(match.group(1).strip())
+    return headings
+
+
+def validate_prompt_refs(config: dict[str, Any]) -> list[str]:
+    failures: list[str] = []
+    for agent in config.get("agent_registry", []):
+        ref = agent.get("prompt_ref", "")
+        agent_id = agent.get("id", "<missing-id>")
+        path = resolve_prompt_file(ref)
+        if path is None:
+            failures.append(f"Agent prompt_ref file not found: {agent_id} -> {ref}")
+            continue
+        if "#" in ref:
+            anchor = ref.split("#", 1)[1].strip()
+            if anchor not in markdown_headings(path):
+                failures.append(f"Agent prompt_ref anchor not found: {agent_id} -> {ref}")
+    return failures
+
+
+def validate_role_paths(config: dict[str, Any]) -> list[str]:
+    failures: list[str] = []
+    for role in config.get("role_permission_matrix", []):
+        role_id = role.get("id", "<missing-role>")
+        for field in ("read_paths", "edit_paths"):
+            for raw_path in role.get(field, []):
+                path = ROOT / raw_path
+                if not path.exists():
+                    failures.append(f"Role {field} does not exist: {role_id} -> {raw_path}")
+    return failures
+
+
+def validate_status_docs(config: dict[str, Any]) -> list[str]:
+    failures: list[str] = []
+    closure = (ROOT / CLOSURE_PATH).read_text(encoding="utf-8-sig")
+    if config.get("version") not in closure:
+        failures.append("Closure document does not mention current config version")
+    sellersprite_state = config.get("capabilities", {}).get("sellersprite_mcp")
+    if sellersprite_state == "available_read_only_verified" and "命名空间可发现" not in closure:
+        failures.append("Closure document does not match current Sellersprite MCP state")
+    feishu_state = config.get("capabilities", {}).get("feishu_lark")
+    if feishu_state == "configured_waiting_user_access" and "FEISHU_OAUTH_SCOPE" not in closure:
+        failures.append("Closure document does not mention pending Feishu OAuth scope")
+    if "PARTIAL：正式 `.codex` 配置未部署 v2" in closure:
+        failures.append("Closure document still contains stale v2 deployment warning")
+    return failures
+
+
+def validate_agentignore() -> list[str]:
+    failures: list[str] = []
+    lines = {
+        line.strip()
+        for line in (ROOT / ".agentignore").read_text(encoding="utf-8-sig").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    }
+    required_paths = {
+        "亚马逊知识库/账号安全/黑帽玩法/",
+        "跨境电商知识库/99_隔离_黑帽资料/",
+    }
+    if (ROOT / "Amazon-AI-OS").exists():
+        required_paths.add("Amazon-AI-OS/")
+    for path in sorted(required_paths - lines):
+        failures.append(f".agentignore missing protected path: {path}")
+    for root in ("亚马逊知识库", "跨境电商知识库"):
+        for keyword in FORBIDDEN_PATH_KEYWORDS:
+            pattern = f"{root}/**/*{keyword}*"
+            if pattern not in lines:
+                failures.append(f".agentignore missing forbidden keyword pattern: {pattern}")
+    return failures
 
 
 def main() -> int:
@@ -81,10 +216,14 @@ def main() -> int:
         if not (ROOT / relative_path).exists():
             failures.append(f"Missing file: {relative_path}")
 
-    candidate = load_json("跨境电商知识库/09_AI智能体/amazon-ai-os.config.v2.json")
+    candidate = load_json(CANDIDATE_CONFIG)
     for property_name in REQUIRED_PROPERTIES:
         if property_name not in candidate:
             failures.append(f"Candidate config missing property: {property_name}")
+
+    for path, value in walk_strings(candidate):
+        if has_corrupt_placeholder(value):
+            failures.append(f"Corrupt placeholder found: {path}={value}")
 
     for state in REQUIRED_STATES:
         if state not in candidate.get("states", []):
@@ -118,7 +257,12 @@ def main() -> int:
     if required_contract != set(candidate.get("agent_output_contract", [])):
         failures.append("result_contract and agent_output_contract do not match")
 
-    deployed = load_json(".codex/amazon-ai-os.config.json")
+    failures.extend(validate_prompt_refs(candidate))
+    failures.extend(validate_role_paths(candidate))
+    failures.extend(validate_status_docs(candidate))
+    failures.extend(validate_agentignore())
+
+    deployed = load_json(DEPLOYED_CONFIG)
     if deployed != candidate:
         failures.append("Formal machine config does not exactly match candidate config: .codex/amazon-ai-os.config.json")
 

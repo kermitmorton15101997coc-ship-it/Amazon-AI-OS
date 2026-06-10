@@ -110,7 +110,7 @@ def real_result(agent_id: str, task: dict[str, Any]) -> dict[str, Any]:
         "请仅基于给定任务输出 JSON，字段必须为：结论、依据、数据来源、置信度、缺失字段、风险等级、建议动作、验收指标、人工复核。"
         f"\n智能体ID：{agent_id}\n任务：{json.dumps(task, ensure_ascii=False)}"
     )
-    body = json.dumps({"model": os.environ.get("AMAZON_AI_OS_MODEL", "gpt-5.4-mini"), "input": prompt}).encode("utf-8")
+    body = json.dumps({"model": os.environ.get("AMAZON_AI_OS_MODEL", "gpt-5.5"), "input": prompt}).encode("utf-8")
     request = urllib.request.Request(
         "https://api.openai.com/v1/responses",
         data=body,

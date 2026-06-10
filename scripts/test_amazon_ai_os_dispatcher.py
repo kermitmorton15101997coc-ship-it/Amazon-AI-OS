@@ -33,7 +33,9 @@ def base_task(task_id: str, scenario: str = "asin_full_diagnosis", risk: str = "
 
 
 def main() -> int:
-    temp = Path(tempfile.mkdtemp(prefix="amazon-ai-os-test-", dir=ROOT / "work"))
+    work_root = ROOT / "work"
+    work_root.mkdir(parents=True, exist_ok=True)
+    temp = Path(tempfile.mkdtemp(prefix="amazon-ai-os-test-", dir=work_root))
     os.environ["AMAZON_AI_OS_QUEUE_ROOT"] = str(temp)
     checks: list[tuple[str, bool]] = []
     try:
