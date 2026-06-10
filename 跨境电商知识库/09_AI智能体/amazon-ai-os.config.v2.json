@@ -1,0 +1,720 @@
+{
+  "name": "Amazon-AI-OS",
+  "version": "2026-06-10.2",
+  "source_of_truth": "obsidian",
+  "task_ledger": "跨境电商知识库/08_项目管理/任务主账本",
+  "queue_root": "work/amazon-ai-os/queue",
+  "approval_mode": "risk_based",
+  "states": [
+    "待分析",
+    "取证中",
+    "分析中",
+    "待审批",
+    "已批准",
+    "执行准备",
+    "测试中",
+    "已验证",
+    "失败待处理",
+    "受阻",
+    "已关闭"
+  ],
+  "state_transitions": {
+    "待分析": [
+      "取证中",
+      "受阻"
+    ],
+    "取证中": [
+      "分析中",
+      "受阻"
+    ],
+    "分析中": [
+      "待审批",
+      "受阻"
+    ],
+    "待审批": [
+      "已批准",
+      "分析中",
+      "已关闭"
+    ],
+    "已批准": [
+      "执行准备"
+    ],
+    "执行准备": [
+      "测试中",
+      "分析中",
+      "受阻"
+    ],
+    "测试中": [
+      "已验证",
+      "失败待处理",
+      "受阻"
+    ],
+    "已验证": [
+      "已关闭"
+    ],
+    "失败待处理": [
+      "分析中",
+      "已关闭"
+    ],
+    "受阻": [
+      "取证中",
+      "分析中",
+      "已关闭"
+    ],
+    "已关闭": []
+  },
+  "workflow": [
+    "接收指令",
+    "安全检查",
+    "任务分析",
+    "首轮取证",
+    "智能体分派",
+    "综合建议",
+    "风险审批",
+    "二次验证",
+    "执行方案",
+    "测试验收",
+    "结果监控",
+    "复盘回写"
+  ],
+  "agent_registry": [
+    {
+      "id": "chief_of_staff",
+      "name": "??????",
+      "prompt_ref": "02_????????.md",
+      "capabilities": [
+        "orchestration",
+        "conflict_resolution"
+      ]
+    },
+    {
+      "id": "ceo_decision_agent",
+      "name": "CEO????Agent",
+      "prompt_ref": "???????/09_AI???/????/???????.md",
+      "capabilities": [
+        "executive_summary",
+        "approval",
+        "strategy"
+      ]
+    },
+    {
+      "id": "product_research_expert",
+      "name": "???????Agent",
+      "prompt_ref": "04_?????????.md#???????",
+      "capabilities": [
+        "market",
+        "competitor",
+        "asin",
+        "review"
+      ]
+    },
+    {
+      "id": "ads_expert",
+      "name": "????Agent",
+      "prompt_ref": "04_?????????.md#???????",
+      "capabilities": [
+        "ads",
+        "keyword"
+      ]
+    },
+    {
+      "id": "ads_profit_expert",
+      "name": "???????",
+      "prompt_ref": "04_?????????.md#???????",
+      "capabilities": [
+        "ads",
+        "profit"
+      ]
+    },
+    {
+      "id": "inventory_expert",
+      "name": "????Agent",
+      "prompt_ref": "04_?????????.md#????????",
+      "capabilities": [
+        "inventory",
+        "replenishment"
+      ]
+    },
+    {
+      "id": "listing_expert",
+      "name": "Listing??Agent",
+      "prompt_ref": "04_?????????.md#Listing????",
+      "capabilities": [
+        "listing",
+        "keyword"
+      ]
+    },
+    {
+      "id": "voc_expert",
+      "name": "Review??Agent",
+      "prompt_ref": "04_?????????.md#???VOC???",
+      "capabilities": [
+        "review",
+        "voc"
+      ]
+    },
+    {
+      "id": "customer_service_agent",
+      "name": "??????Agent",
+      "prompt_ref": "04_?????????.md#???????",
+      "capabilities": [
+        "customer_service",
+        "order_support",
+        "compliance_reply"
+      ]
+    },
+    {
+      "id": "product_development_agent",
+      "name": "????Agent",
+      "prompt_ref": "???????/09_AI???/????/????Agent???.md",
+      "capabilities": [
+        "product_development",
+        "supplier",
+        "sampling"
+      ]
+    },
+    {
+      "id": "operations_director",
+      "name": "????Agent",
+      "prompt_ref": "01_???????.md",
+      "capabilities": [
+        "operations",
+        "conflict_resolution"
+      ]
+    },
+    {
+      "id": "compliance_expert",
+      "name": "AI??????",
+      "prompt_ref": "04_?????????.md",
+      "capabilities": [
+        "compliance",
+        "trademark"
+      ]
+    },
+    {
+      "id": "visual_director",
+      "name": "AI????",
+      "prompt_ref": "???????/09_AI???/AI???????.md",
+      "capabilities": [
+        "visual",
+        "listing"
+      ]
+    }
+  ],
+  "routing_rules": [
+    {
+      "scenario": "asin_full_diagnosis",
+      "required_any": [
+        "asin",
+        "competitor",
+        "ads",
+        "inventory",
+        "review"
+      ],
+      "primary": "operations_director",
+      "collaborators": [
+        "ads_expert",
+        "ads_profit_expert",
+        "inventory_expert",
+        "listing_expert",
+        "voc_expert"
+      ],
+      "risk": "medium"
+    },
+    {
+      "scenario": "product_selection_screening",
+      "required_any": [
+        "category",
+        "market",
+        "keyword",
+        "product_selection"
+      ],
+      "primary": "product_research_expert",
+      "collaborators": [
+        "voc_expert",
+        "compliance_expert",
+        "operations_director"
+      ],
+      "risk": "medium"
+    },
+    {
+      "scenario": "ads_diagnosis",
+      "required_any": [
+        "ads",
+        "acos",
+        "tacos",
+        "search_term"
+      ],
+      "primary": "ads_expert",
+      "collaborators": [
+        "ads_profit_expert",
+        "listing_expert",
+        "inventory_expert"
+      ],
+      "risk": "medium"
+    },
+    {
+      "scenario": "inventory_replenishment",
+      "required_any": [
+        "inventory",
+        "replenishment",
+        "stockout"
+      ],
+      "primary": "inventory_expert",
+      "collaborators": [
+        "operations_director"
+      ],
+      "risk": "high"
+    },
+    {
+      "scenario": "listing_optimization",
+      "required_any": [
+        "listing",
+        "keyword",
+        "visual"
+      ],
+      "primary": "listing_expert",
+      "collaborators": [
+        "voc_expert",
+        "visual_director",
+        "compliance_expert"
+      ],
+      "risk": "medium"
+    },
+    {
+      "scenario": "review_analysis",
+      "required_any": [
+        "review",
+        "rating",
+        "voc",
+        "negative_feedback"
+      ],
+      "primary": "voc_expert",
+      "collaborators": [
+        "customer_service_agent",
+        "listing_expert",
+        "compliance_expert"
+      ],
+      "risk": "medium"
+    },
+    {
+      "scenario": "customer_service_response",
+      "required_any": [
+        "customer_message",
+        "order",
+        "return",
+        "refund",
+        "customer_service"
+      ],
+      "primary": "customer_service_agent",
+      "collaborators": [
+        "voc_expert",
+        "compliance_expert"
+      ],
+      "risk": "medium"
+    },
+    {
+      "scenario": "product_development",
+      "required_any": [
+        "product_development",
+        "supplier",
+        "sample",
+        "patent",
+        "factory"
+      ],
+      "primary": "product_development_agent",
+      "collaborators": [
+        "product_research_expert",
+        "compliance_expert",
+        "visual_director"
+      ],
+      "risk": "high"
+    },
+    {
+      "scenario": "ceo_decision_review",
+      "required_any": [
+        "daily_report",
+        "weekly_report",
+        "budget",
+        "new_product",
+        "risk"
+      ],
+      "primary": "ceo_decision_agent",
+      "collaborators": [
+        "operations_director",
+        "ads_profit_expert",
+        "inventory_expert"
+      ],
+      "risk": "high"
+    },
+    {
+      "scenario": "compliance_review",
+      "required_any": [
+        "compliance",
+        "trademark",
+        "appeal"
+      ],
+      "primary": "compliance_expert",
+      "collaborators": [
+        "operations_director"
+      ],
+      "risk": "high"
+    }
+  ],
+  "dispatch_policy": {
+    "parallel": true,
+    "max_calls_per_task": 8,
+    "timeout_seconds": 300,
+    "max_retries": 1,
+    "retry_statuses": [
+      "timeout",
+      "failed"
+    ],
+    "failure_escalation": "chief_of_staff",
+    "dedupe_key": [
+      "task_id",
+      "agent_id",
+      "responsibility"
+    ],
+    "missing_contract_action": "return_to_same_agent",
+    "do_not_create_unregistered_agents": true
+  },
+  "task_schema": {
+    "required": [
+      "task_id",
+      "title",
+      "objective",
+      "scenario",
+      "risk_level",
+      "evidence",
+      "acceptance_metrics",
+      "approval"
+    ]
+  },
+  "dispatch_record_schema": {
+    "required": [
+      "task_id",
+      "agent_id",
+      "responsibility",
+      "call_id",
+      "status",
+      "started_at",
+      "finished_at",
+      "input_summary",
+      "failure_reason"
+    ]
+  },
+  "result_contract": [
+    "结论",
+    "依据",
+    "数据来源",
+    "置信度",
+    "缺失字段",
+    "风险等级",
+    "建议动作",
+    "验收指标",
+    "人工复核"
+  ],
+  "agent_output_contract": [
+    "结论",
+    "依据",
+    "数据来源",
+    "置信度",
+    "缺失字段",
+    "风险等级",
+    "建议动作",
+    "验收指标",
+    "人工复核"
+  ],
+  "closure_gates": {
+    "results_collected": true,
+    "approval_required_for": [
+      "medium",
+      "high"
+    ],
+    "second_verification_required_for": [
+      "medium",
+      "high"
+    ],
+    "test_result_required": true,
+    "monitoring_plan_required": true,
+    "knowledge_writeback_required": true
+  },
+  "approval_policy": {
+    "low": "可自动进入执行方案",
+    "medium": "负责人执行前审批",
+    "high": "负责人及专业角色执行前审批",
+    "never_auto_execute": [
+      "真实预算变更",
+      "付款",
+      "补货下单",
+      "亚马逊后台发布",
+      "申诉提交",
+      "账号与权限操作"
+    ],
+    "approval_gates": {
+      "owner": [
+        "GitHub??????",
+        "????",
+        "????",
+        "??Vault??",
+        "??",
+        "????",
+        "????"
+      ],
+      "operations_manager": [
+        "SOP??",
+        "Agent?????",
+        "??????",
+        "????????"
+      ],
+      "specialist": [
+        "????",
+        "????",
+        "????",
+        "????",
+        "??????"
+      ]
+    }
+  },
+  "knowledge_priority": [
+    "用户最新内部数据",
+    "卖家精灵 MCP 当前数据",
+    "Obsidian SOP 与复盘",
+    "培训资料与历史经验"
+  ],
+  "mcp_policy": {
+    "first_round": "建立证据基础并发现缺失字段",
+    "second_round": "审批后验证决策关键事实",
+    "missing_data": "明确标注且不得虚构",
+    "second_round_failure": "中高风险任务保持受阻",
+    "sellersprite_access": {
+      "mode": "read_only_auto",
+      "approval": "auto_for_read_only_market_data",
+      "allowed_data": [
+        "market",
+        "keyword",
+        "competitor",
+        "asin",
+        "traffic",
+        "review",
+        "trademark",
+        "trend"
+      ],
+      "manual_approval_required": [
+        "account",
+        "budget",
+        "payment",
+        "listing_publish",
+        "appeal",
+        "permission_change"
+      ]
+    }
+  },
+  "capabilities": {
+    "obsidian": "available",
+    "sellersprite_mcp": "available_read_only_verified",
+    "feishu_lark": "configured_waiting_user_access",
+    "codex_native_dispatch": "available",
+    "standalone_real_adapter": "requires_openai_api_key",
+    "real_backend_execution": "human_only"
+  },
+  "core_agents": [
+    "ceo_decision_agent",
+    "product_research_expert",
+    "ads_expert",
+    "inventory_expert",
+    "listing_expert",
+    "voc_expert",
+    "customer_service_agent",
+    "product_development_agent"
+  ],
+  "role_permission_matrix": [
+    {
+      "id": "owner",
+      "name": "??",
+      "read_paths": [
+        "???????"
+      ],
+      "edit_paths": [
+        "???????/08_????/?????",
+        "???????/00_????"
+      ],
+      "allowed_agents": [
+        "ceo_decision_agent",
+        "operations_director",
+        "product_research_expert",
+        "ads_expert",
+        "inventory_expert",
+        "listing_expert",
+        "voc_expert",
+        "customer_service_agent",
+        "product_development_agent"
+      ],
+      "approval_required_for": [
+        "????",
+        "??",
+        "??",
+        "????",
+        "??",
+        "??"
+      ]
+    },
+    {
+      "id": "operations_manager",
+      "name": "????",
+      "read_paths": [
+        "???????/00_????",
+        "???????/01_????",
+        "???????/02_????",
+        "???????/03_Listing??",
+        "???????/04_????",
+        "???????/05_????",
+        "???????/06_????",
+        "???????/07_????",
+        "???????/08_????",
+        "???????/09_AI???"
+      ],
+      "edit_paths": [
+        "???????/01_????",
+        "???????/02_????",
+        "???????/03_Listing??",
+        "???????/04_????",
+        "???????/05_????",
+        "???????/06_????",
+        "???????/08_????",
+        "???????/09_AI???"
+      ],
+      "allowed_agents": [
+        "operations_director",
+        "product_research_expert",
+        "ads_expert",
+        "inventory_expert",
+        "listing_expert",
+        "voc_expert",
+        "customer_service_agent",
+        "product_development_agent"
+      ],
+      "approval_required_for": [
+        "SOP??",
+        "Agent?????",
+        "??????",
+        "????????"
+      ]
+    },
+    {
+      "id": "operations_assistant",
+      "name": "????",
+      "read_paths": [
+        "???????/01_????",
+        "???????/03_Listing??",
+        "???????/05_????",
+        "???????/08_????/?????"
+      ],
+      "edit_paths": [
+        "???????/08_????/?????"
+      ],
+      "allowed_agents": [
+        "product_research_expert",
+        "listing_expert",
+        "voc_expert"
+      ],
+      "approval_required_for": [
+        "????",
+        "Listing??",
+        "??????"
+      ]
+    },
+    {
+      "id": "ads_specialist",
+      "name": "????",
+      "read_paths": [
+        "???????/02_????",
+        "???????/03_Listing??",
+        "???????/08_????/?????"
+      ],
+      "edit_paths": [
+        "???????/02_????",
+        "???????/08_????/?????"
+      ],
+      "allowed_agents": [
+        "ads_expert",
+        "ads_profit_expert",
+        "listing_expert"
+      ],
+      "approval_required_for": [
+        "????",
+        "??????",
+        "??????"
+      ]
+    },
+    {
+      "id": "customer_service",
+      "name": "??",
+      "read_paths": [
+        "???????/06_????",
+        "???????/05_????",
+        "???????/08_????/?????"
+      ],
+      "edit_paths": [
+        "???????/06_????",
+        "???????/08_????/?????"
+      ],
+      "allowed_agents": [
+        "customer_service_agent",
+        "voc_expert"
+      ],
+      "approval_required_for": [
+        "????",
+        "????",
+        "??????"
+      ]
+    },
+    {
+      "id": "supply_chain",
+      "name": "??/???",
+      "read_paths": [
+        "???????/04_????",
+        "???????/07_????",
+        "???????/08_????/?????"
+      ],
+      "edit_paths": [
+        "???????/04_????",
+        "???????/07_????",
+        "???????/08_????/?????"
+      ],
+      "allowed_agents": [
+        "inventory_expert",
+        "product_development_agent"
+      ],
+      "approval_required_for": [
+        "????",
+        "??",
+        "???????"
+      ]
+    }
+  ],
+  "github_policy": {
+    "repository_name": "Amazon-AI-OS",
+    "visibility": "private",
+    "permission_model": "repository_and_directory_separation",
+    "required_approval_for": [
+      "????",
+      "????",
+      "????",
+      "??Vault????"
+    ],
+    "excluded_paths": [
+      "node_modules",
+      ".codex/downloads",
+      ".codex/tools",
+      ".codex/feishu-auth",
+      "work",
+      "output",
+      "outputs",
+      "????",
+      ".env",
+      ".env.*"
+    ]
+  }
+}

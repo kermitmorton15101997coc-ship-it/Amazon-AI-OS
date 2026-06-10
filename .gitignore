@@ -1,0 +1,60 @@
+# Amazon-AI-OS repository hygiene
+
+# Local dependencies and package caches
+node_modules/
+.tmp_pydeps/
+.tmp_visual_director/
+.codex/downloads/
+.codex/tools/
+.codex/npm-cache/
+
+# Raw source archives and large binary originals stay outside GitHub.
+亚马逊知识库/
+跨境电商知识库/Attachments/亚马逊知识库原件/
+跨境电商知识库/Attachments/外部培训资料/
+
+# Local auth, tokens, and machine-specific state
+.env
+.env.*
+!.env.example
+.codex/feishu-auth/
+*.key
+*.pem
+*secret*
+*token*
+
+# Generated working queues and outputs
+work/
+output/
+outputs/
+图片输出/
+
+# Quarantined or prohibited knowledge material
+亚马逊知识库/账号安全/黑帽玩法/
+跨境电商知识库/99_隔离_黑帽资料/
+**/*黑帽*
+**/*恶搞*
+**/*赶跟卖*
+**/*删差评*
+**/*差评移除*
+**/*种子评论*
+**/*僵尸评论*
+**/*僵尸链接*
+**/*翻新*
+**/*黑科技*
+**/*多开节点*
+**/*突破限制*
+**/*测评实操*
+**/*卡视频*
+**/*无限秒杀投诉*
+
+# Python and script caches
+__pycache__/
+*.py[cod]
+
+# Office temp files
+~$*
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
