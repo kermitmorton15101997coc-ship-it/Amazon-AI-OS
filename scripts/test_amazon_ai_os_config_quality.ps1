@@ -7,9 +7,15 @@ if ($null -eq $python) {
 }
 
 if ($null -eq $python) {
-    Write-Output "Amazon-AI-OS standalone dispatcher: BLOCKED - Python runtime not found"
+    Write-Output "Amazon-AI-OS config quality: BLOCKED - Python runtime not found"
     exit 3
 }
 
-& $python "$PSScriptRoot\test_amazon_ai_os_dispatcher.py"
-exit $LASTEXITCODE
+& $python "$PSScriptRoot\validate_amazon_ai_os.py"
+$code = $LASTEXITCODE
+if ($code -eq 0) {
+    Write-Output "Amazon-AI-OS config quality: PASS"
+} else {
+    Write-Output "Amazon-AI-OS config quality: PARTIAL"
+}
+exit $code

@@ -16,8 +16,23 @@ if ([string]::IsNullOrWhiteSpace($env:LARK_DOMAIN)) {
     $env:LARK_DOMAIN = "https://open.feishu.cn"
 }
 
-$node = (Resolve-Path ".\.codex\tools\node-v24.16.0-win-x64\node.exe").Path
-$cli = (Resolve-Path ".\.codex\lark-mcp-runner-stable\node_modules\@larksuiteoapi\lark-mcp\dist\cli.js").Path
+$root = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+$systemNode = Get-Command node -ErrorAction SilentlyContinue
+if ($null -ne $systemNode) {
+    $node = $systemNode.Source
+} else {
+    $bundledNode = Get-ChildItem -Path @(
+        (Join-Path $root ".codex\tools"),
+        (Join-Path (Split-Path -Parent $root) ".codex\tools")
+    ) -Filter "node.exe" -File -Recurse -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($null -eq $bundledNode) {
+        Write-Error "Node.js runtime not found. Install Node.js or run scripts/initialize_windows.ps1."
+        exit 2
+    }
+    $node = $bundledNode.FullName
+}
+$cli = (Resolve-Path (Join-Path $root ".codex\lark-mcp-runner-stable\node_modules\@larksuiteoapi\lark-mcp\dist\cli.js")).Path
 
 $scope = $env:FEISHU_OAUTH_SCOPE
 if ([string]::IsNullOrWhiteSpace($scope)) {

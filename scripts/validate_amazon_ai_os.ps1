@@ -1,4 +1,4 @@
-$python = Get-Command python -ErrorAction SilentlyContinue
+﻿$python = Get-Command python -ErrorAction SilentlyContinue
 if ($null -eq $python) {
     $bundledPython = Join-Path $env:USERPROFILE ".cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
     if (Test-Path -LiteralPath $bundledPython) {
