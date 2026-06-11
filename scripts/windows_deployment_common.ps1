@@ -64,7 +64,8 @@ function Find-SevenZip {
 function Find-Obsidian {
     return Find-Executable -Command "Obsidian" -Candidates @(
         (Join-Path $env:LOCALAPPDATA "Obsidian\Obsidian.exe"),
-        "C:\Program Files\Obsidian\Obsidian.exe"
+        "C:\Program Files\Obsidian\Obsidian.exe",
+        "D:\徐依伊\Obsidian\Obsidian.exe"
     )
 }
 

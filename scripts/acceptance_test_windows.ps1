@@ -24,7 +24,8 @@ $checks = @(
     "scripts\test_repository_security.ps1",
     "scripts\validate_amazon_ai_os.ps1",
     "scripts\test_amazon_ai_os_dispatcher.ps1",
-    "scripts\test_amazon_ai_os_workflow.ps1"
+    "scripts\test_amazon_ai_os_workflow.ps1",
+    "scripts\test_amazon_ai_os_e2e_acceptance.ps1"
 )
 foreach ($check in $checks) {
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $script:AmazonAiOsRoot $check)

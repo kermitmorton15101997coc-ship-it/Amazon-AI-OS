@@ -12,6 +12,28 @@
 - 同一结论最好至少有两个维度支持，例如类目规模 + 集中度，或关键词搜索量 + 竞品数量。
 - 涉及利润、净利率、退货率、补货现金、广告预算时，必须结合用户内部数据复核。
 
+## 1.1 正式工具清单
+
+以下工具为当前 Amazon-AI-OS 的正式 MCP 路由口径。根目录规范、Vault 关联配置和任务分派必须保持一致。
+
+核心必测工具：
+
+| 工具组 | 工具 |
+|---|---|
+| 类目与市场 | `product_node`、`market_research`、`market_research_statistics`、`market_product_concentration`、`market_brand_concentration`、`market_price_distribution`、`market_rating_distribution`、`market_ratings_count_distribution` |
+| 商品与竞品 | `product_research`、`competitor_lookup`、`asin_detail`、`keepa_info`、`asin_prediction`、`traffic_listing`、`traffic_listing_stat` |
+| 关键词与流量 | `keyword_research`、`keyword_miner`、`keyword_research_trends`、`aba_research_monthly`、`aba_research_weekly`、`aba_research_trend`、`traffic_source`、`traffic_keyword`、`traffic_keyword_stat`、`traffic_extend`、`keyword_order` |
+| Review 与商标 | `review`、`trademark_list`、`trademark_detail`、`trademark_stats`、`trademark_country_list` |
+| 趋势 | `google_trend` |
+
+可选扩展工具：
+
+| 工具 | 适用场景 | 限制 |
+|---|---|---|
+| `asin_coupon_trend`、`asin_detail_with_coupon_trend` | 优惠价格和促销趋势 | 只能辅助价格判断，不推导净利润、补货量或现金压力 |
+
+未列入本清单的工具不得写入正式 SOP。若卖家精灵 MCP 新增工具，先更新本文件和 `跨境电商知识库/09_AI智能体/卖家精灵MCP关联配置.md`，再进入任务分派。
+
 ## 2. 场景到工具映射
 
 ### 2.1 选品/类目判断

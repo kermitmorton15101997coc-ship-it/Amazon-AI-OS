@@ -16,6 +16,8 @@ REQUIRED_FILES = [
     ".agentignore",
     RUNBOOK_PATH,
     CLOSURE_PATH,
+    "跨境电商知识库/09_AI智能体/岗位注册覆盖对照表.md",
+    "跨境电商知识库/09_AI智能体/端到端验收记录.md",
     "跨境电商知识库/09_AI智能体/Codex关联配置.md",
     "跨境电商知识库/09_AI智能体/本地环境说明.md",
     "跨境电商知识库/08_项目管理/任务主账本/_目录.md",
@@ -179,8 +181,13 @@ def validate_status_docs(config: dict[str, Any]) -> list[str]:
     if sellersprite_state == "available_read_only_verified" and "命名空间可发现" not in closure:
         failures.append("Closure document does not match current Sellersprite MCP state")
     feishu_state = config.get("capabilities", {}).get("feishu_lark")
-    if feishu_state == "configured_waiting_user_access" and "FEISHU_OAUTH_SCOPE" not in closure:
-        failures.append("Closure document does not mention pending Feishu OAuth scope")
+    if feishu_state == "configured_waiting_user_access":
+        for key in ("FEISHU_APP_ID", "FEISHU_APP_SECRET", "LARK_DOMAIN", "LARK_TOOLS", "LARK_TOKEN_MODE", "FEISHU_OAUTH_SCOPE"):
+            if key not in closure:
+                failures.append(f"Closure document does not mention pending Feishu/Lark variable: {key}")
+    for required in ("岗位注册覆盖对照表", "端到端验收记录", "核心可运行，飞书待授权，真实业务执行需审批"):
+        if required not in closure:
+            failures.append(f"Closure document missing current remediation status: {required}")
     if "PARTIAL：正式 `.codex` 配置未部署 v2" in closure:
         failures.append("Closure document still contains stale v2 deployment warning")
     return failures
